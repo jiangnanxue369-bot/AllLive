@@ -1,0 +1,32 @@
+name: Build AllLive.Console and Upload
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Restore NuGet packages
+        run: nuget restore AllLive.Console/AllLive.Console.csproj
+
+      - name: Build AllLive.Console (Release)
+        run: msbuild AllLive.Console/AllLive.Console.csproj /p:Configuration=Release
+
+      - name: Compress Release to Zip
+        run: powershell Compress-Archive -Path AllLive.Console\bin\Release\* -DestinationPath AllLive.Console.Release.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AllLive.Console.Release
+          path: AllLive.Console.Release.zip
